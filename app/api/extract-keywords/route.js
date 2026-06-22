@@ -11,9 +11,15 @@ export async function POST(req) {
       );
 
     const model =
-      genAI.getGenerativeModel({
-        model: "gemini-2.5-flash",
-      });
+genAI.getGenerativeModel({
+  model: "gemini-2.5-flash",
+
+  generationConfig: {
+    temperature: 0,
+    topP: 0.1,
+    topK: 1,
+  },
+});
 
     const prompt = `
 You are an ATS and HR recruitment expert.
@@ -57,10 +63,27 @@ Job Description:
 ${jobDescription}
 `;
 
-    const result =
+    let result;
+
+for (let i = 0; i < 3; i++) {
+  try {
+    result =
       await model.generateContent(
         prompt
       );
+
+    break;
+  } catch (err) {
+    if (i === 2) {
+      throw err;
+    }
+
+    await new Promise(
+      (resolve) =>
+        setTimeout(resolve, 2000)
+    );
+  }
+}
 
     const text =
       result.response
